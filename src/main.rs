@@ -16,5 +16,13 @@ fn main() {
 
     let mut buf = [0; 1];
 
-    while io::stdin().read(&mut buf).expect("Failed to read line") == 1 && buf != [b'q'] {}
+    while io::stdin().read(&mut buf).expect("Failed to read line") == 1 && buf != [b'q'] {
+        let character = buf[0] as char;
+
+        if character.is_control() {
+            println!("{}\r", character as u8);
+        } else {
+            println!("{}\r", character);
+        }
+    }
 }
