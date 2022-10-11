@@ -1,6 +1,6 @@
 use crossterm::event::*;
 use crossterm::terminal::ClearType;
-use crossterm::{execute, terminal};
+use crossterm::{cursor, execute, terminal};
 use std::io::stdout;
 use std::time::Duration;
 
@@ -34,7 +34,8 @@ impl Output {
     }
 
     fn clear_screen() -> crossterm::Result<()> {
-        execute!(stdout(), terminal::Clear(ClearType::All))
+        execute!(stdout(), terminal::Clear(ClearType::All))?;
+        execute!(stdout(), cursor::MoveTo(0, 0))
     }
 
     fn refresh_screen(&self) -> crossterm::Result<()> {
