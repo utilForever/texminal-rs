@@ -1,7 +1,7 @@
 use crossterm::event::*;
 use crossterm::terminal::ClearType;
 use crossterm::{cursor, execute, terminal};
-use std::io::stdout;
+use std::io::{stdout, Write};
 use std::time::Duration;
 
 struct CleanUp;
@@ -48,8 +48,14 @@ impl Output {
     fn draw_rows(&self) {
         let screen_rows = self.win_size.1;
 
-        for _ in 0..screen_rows {
-            println!("~\r");
+        for i in 0..screen_rows {
+            print!("~");
+
+            if i < screen_rows - 1 {
+                println!("\r");
+            }
+
+            stdout().flush().unwrap();
         }
     }
 
