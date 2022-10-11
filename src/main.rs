@@ -27,11 +27,17 @@ impl Reader {
     }
 }
 
-struct Output;
+struct Output {
+    win_size: (usize, usize),
+}
 
 impl Output {
     fn new() -> Self {
-        Self
+        let win_size = terminal::size()
+            .map(|(x, y)| (x as usize, y as usize))
+            .unwrap();
+
+        Self { win_size }
     }
 
     fn clear_screen() -> crossterm::Result<()> {
@@ -39,8 +45,18 @@ impl Output {
         execute!(stdout(), cursor::MoveTo(0, 0))
     }
 
+    fn draw_rows(&self) {
+        let screen_rows = self.win_size.1;
+
+        for _ in 0..screen_rows {
+            println!("~\r");
+        }
+    }
+
     fn refresh_screen(&self) -> crossterm::Result<()> {
-        Self::clear_screen()
+        Self::clear_screen()?;
+        self.draw_rows();
+        execute!(stdout(), cursor::MoveTo(0, 0))
     }
 }
 
