@@ -16,11 +16,11 @@ fn main() -> crossterm::Result<()> {
     terminal::enable_raw_mode()?;
 
     loop {
-        if event::poll(Duration::from_millis(500))? {
+        if event::poll(Duration::from_millis(1000))? {
             if let Event::Key(event) = event::read()? {
                 if let KeyEvent {
                     code: KeyCode::Char('q'),
-                    modifiers: event::KeyModifiers::NONE,
+                    modifiers: event::KeyModifiers::CONTROL,
                     ..
                 } = event
                 {
