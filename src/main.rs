@@ -4,6 +4,8 @@ use crossterm::{cursor, execute, queue, terminal};
 use std::io::{self, stdout, Write};
 use std::time::Duration;
 
+const VERSION: &str = "0.0.1";
+
 struct CleanUp;
 
 impl Drop for CleanUp {
@@ -91,10 +93,29 @@ impl Output {
     }
 
     fn draw_rows(&mut self) {
-        let screen_rows = self.win_size.1;
+        let (screen_columns, screen_rows) = self.win_size;
 
         for i in 0..screen_rows {
-            self.editor_contents.push('~');
+            if i == screen_rows / 3 {
+                let mut welcome = format!("Texminal Editor --- Version {}", VERSION);
+
+                if welcome.len() > screen_columns {
+                    welcome.truncate(screen_columns)
+                }
+
+                let mut padding = (screen_columns - welcome.len()) / 2;
+
+                if padding != 0 {
+                    self.editor_contents.push_str("~");
+                    padding -= 1;
+                }
+
+                (0..padding).for_each(|_| self.editor_contents.push(' '));
+                self.editor_contents.push_str(&welcome);
+            } else {
+                self.editor_contents.push('~');
+            }
+
             queue!(
                 self.editor_contents,
                 terminal::Clear(ClearType::UntilNewLine)
