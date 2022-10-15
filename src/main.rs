@@ -70,9 +70,42 @@ impl Write for EditorContents {
     }
 }
 
+struct CursorController {
+    cursor_x: usize,
+    cursor_y: usize,
+}
+
+impl CursorController {
+    fn new() -> Self {
+        Self {
+            cursor_x: 0,
+            cursor_y: 0,
+        }
+    }
+
+    fn move_cursor(&mut self, direction: char) {
+        match direction {
+            'w' => {
+                self.cursor_y -= 1;
+            }
+            'a' => {
+                self.cursor_x -= 1;
+            }
+            's' => {
+                self.cursor_y += 1;
+            }
+            'd' => {
+                self.cursor_x += 1;
+            }
+            _ => unimplemented!(),
+        }
+    }
+}
+
 struct Output {
     win_size: (usize, usize),
     editor_contents: EditorContents,
+    cursor_controller: CursorController,
 }
 
 impl Output {
@@ -84,6 +117,7 @@ impl Output {
         Self {
             win_size,
             editor_contents: EditorContents::new(),
+            cursor_controller: CursorController::new(),
         }
     }
 
@@ -131,8 +165,19 @@ impl Output {
     fn refresh_screen(&mut self) -> crossterm::Result<()> {
         queue!(self.editor_contents, cursor::Hide, cursor::MoveTo(0, 0))?;
         self.draw_rows();
-        queue!(self.editor_contents, cursor::MoveTo(0, 0), cursor::Show)?;
+
+        let CursorController { cursor_x, cursor_y } = self.cursor_controller;
+        queue!(
+            self.editor_contents,
+            cursor::MoveTo(cursor_x as u16, cursor_y as u16),
+            cursor::Show
+        )?;
+
         self.editor_contents.flush()
+    }
+
+    fn move_cursor(&mut self, direction: char) {
+        self.cursor_controller.move_cursor(direction);
     }
 }
 
@@ -149,13 +194,21 @@ impl Editor {
         }
     }
 
-    fn process_key_press(&self) -> crossterm::Result<bool> {
+    fn process_key_press(&mut self) -> crossterm::Result<bool> {
         match self.reader.read_key()? {
             KeyEvent {
                 code: KeyCode::Char('q'),
                 modifiers: KeyModifiers::CONTROL,
                 ..
             } => return Ok(false),
+            KeyEvent {
+                code: KeyCode::Char(val),
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => match val {
+                'w' | 'a' | 's' | 'd' => self.output.move_cursor(val),
+                _ => {}
+            },
             _ => {}
         }
 
