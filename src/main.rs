@@ -73,29 +73,39 @@ impl Write for EditorContents {
 struct CursorController {
     cursor_x: usize,
     cursor_y: usize,
+    screen_columns: usize,
+    screen_rows: usize,
 }
 
 impl CursorController {
-    fn new() -> Self {
+    fn new(win_size: (usize, usize)) -> Self {
         Self {
             cursor_x: 0,
             cursor_y: 0,
+            screen_columns: win_size.0,
+            screen_rows: win_size.1,
         }
     }
 
     fn move_cursor(&mut self, direction: KeyCode) {
         match direction {
             KeyCode::Up => {
-                self.cursor_y -= 1;
+                self.cursor_y = self.cursor_y.saturating_sub(1);
             }
             KeyCode::Left => {
-                self.cursor_x -= 1;
+                if self.cursor_x != 0 {
+                    self.cursor_x -= 1;
+                }
             }
             KeyCode::Down => {
-                self.cursor_y += 1;
+                if self.cursor_y != self.screen_rows - 1 {
+                    self.cursor_y += 1;
+                }
             }
             KeyCode::Right => {
-                self.cursor_x += 1;
+                if self.cursor_x != self.screen_columns - 1 {
+                    self.cursor_x += 1;
+                }
             }
             _ => unimplemented!(),
         }
@@ -117,7 +127,7 @@ impl Output {
         Self {
             win_size,
             editor_contents: EditorContents::new(),
-            cursor_controller: CursorController::new(),
+            cursor_controller: CursorController::new(win_size),
         }
     }
 
@@ -166,7 +176,9 @@ impl Output {
         queue!(self.editor_contents, cursor::Hide, cursor::MoveTo(0, 0))?;
         self.draw_rows();
 
-        let CursorController { cursor_x, cursor_y } = self.cursor_controller;
+        let CursorController {
+            cursor_x, cursor_y, ..
+        } = self.cursor_controller;
         queue!(
             self.editor_contents,
             cursor::MoveTo(cursor_x as u16, cursor_y as u16),
