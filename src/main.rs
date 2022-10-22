@@ -18,13 +18,13 @@ fn main() -> crossterm::Result<()> {
     loop {
         if event::poll(Duration::from_millis(500))? {
             if let Event::Key(event) = event::read()? {
-                match event {
-                    KeyEvent {
-                        code: KeyCode::Char('q'),
-                        modifiers: event::KeyModifiers::NONE,
-                        ..
-                    } => break,
-                    _ => {}
+                if let KeyEvent {
+                    code: KeyCode::Char('q'),
+                    modifiers: event::KeyModifiers::NONE,
+                    ..
+                } = event
+                {
+                    break;
                 }
 
                 println!("{:?}\r", event);
